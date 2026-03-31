@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarketPulse — Daily Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0f;
+    --paper: #f5f2eb;
+    --gold: #c9a84c;
+    --gold-light: #e8d5a0;
+    --red: #c0392b;
+    --green: #1a7a4a;
+    --muted: #6b6760;
+    --border: #d8d3c8;
+    --card: #faf8f3;
+  }
+
+- { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+background: var(–paper);
+color: var(–ink);
+font-family: ‘DM Sans’, sans-serif;
+min-height: 100vh;
+overflow-x: hidden;
+}
+
+.masthead {
+border-bottom: 3px double var(–ink);
+padding: 18px 32px 14px;
+display: flex;
+align-items: flex-end;
+justify-content: space-between;
+gap: 12px;
+}
+.masthead-left { display: flex; flex-direction: column; }
+.paper-name { font-family: ‘DM Serif Display’, serif; font-size: clamp(28px, 5vw, 48px); line-height: 1; letter-spacing: -1px; color: var(–ink); }
+.paper-name em { font-style: italic; color: var(–gold); }
+.tagline { font-family: ‘IBM Plex Mono’, monospace; font-size: 10px; color: var(–muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+.masthead-right { text-align: right; font-family: ‘IBM Plex Mono’, monospace; font-size: 11px; color: var(–muted); line-height: 1.6; }
+#live-time { color: var(–ink); font-weight: 500; }
+
+.edition-strip { background: var(–ink); color: var(–paper); display: flex; align-items: center; overflow: hidden; font-family: ‘IBM Plex Mono’, monospace; font-size: 11px; letter-spacing: 1px; }
+.edition-label { background: var(–gold); color: var(–ink); padding: 6px 16px; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+.edition-btns { display: flex; gap: 1px; background: #222; flex-shrink: 0; }
+.edition-btn { background: #1a1a1a; color: #aaa; border: none; padding: 6px 18px; cursor: pointer; font-family: ‘IBM Plex Mono’, monospace; font-size: 11px; letter-spacing: 1px; transition: all 0.15s; white-space: nowrap; }
+.edition-btn:hover { background: #2a2a2a; color: var(–gold-light); }
+.edition-btn.active { background: var(–gold); color: var(–ink); font-weight: 500; }
+.ticker-wrap { flex: 1; overflow: hidden; padding: 0 16px; }
+.ticker-inner { display: inline-flex; gap: 40px; animation: ticker 30s linear infinite; white-space: nowrap; color: #ccc; }
+.ticker-inner span { display: inline-flex; gap: 8px; align-items: center; }
+.ticker-inner .up { color: #4caf81; }
+.ticker-inner .dn { color: #e57373; }
+@keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+.main { max-width: 960px; margin: 0 auto; padding: 32px 24px 60px; }
+
+/* Tabs */
+.tab-nav { display: flex; border-bottom: 2px solid var(–ink); margin-bottom: 28px; overflow-x: auto; }
+.tab-btn { background: none; border: none; border-bottom: 3px solid transparent; margin-bottom: -2px; padding: 10px 20px; font-family: ‘IBM Plex Mono’, monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(–muted); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.tab-btn:hover { color: var(–ink); }
+.tab-btn.active { color: var(–ink); border-bottom-color: var(–gold); font-weight: 500; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* Report tab */
+.report-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(–border); }
+.report-badge { font-family: ‘IBM Plex Mono’, monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; background: var(–ink); color: var(–gold); padding: 4px 10px; border-radius: 2px; }
+.report-badge.morning { background: #1a3a2a; color: #6ecf9a; }
+.report-badge.evening { background: #1a1a3a; color: #9ab0ef; }
+.report-title { font-family: ‘DM Serif Display’, serif; font-size: 22px; color: var(–ink); }
+
+.generate-area { text-align: center; padding: 60px 24px; border: 1px dashed var(–border); border-radius: 4px; background: var(–card); }
+.generate-area p { font-family: ‘DM Serif Display’, serif; font-size: 18px; color: var(–muted); font-style: italic; margin-bottom: 24px; }
+
+.gen-btn { background: var(–ink); color: var(–paper); border: none; padding: 14px 32px; font-family: ‘IBM Plex Mono’, monospace; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: all 0.2s; display: inline-flex; align-items: center; gap: 10px; }
+.gen-btn:hover { background: #222; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+.gen-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.gen-btn .spinner { width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
+.gen-btn.loading .spinner { display: block; }
+.gen-btn.loading .btn-text { opacity: 0.7; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.report-card { background: var(–card); border: 1px solid var(–border); border-radius: 4px; overflow: hidden; display: none; }
+.report-card.visible { display: block; }
+.report-meta { background: var(–ink); color: var(–gold-light); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; font-family: ‘IBM Plex Mono’, monospace; font-size: 11px; letter-spacing: 1px; }
+.report-body { padding: 32px; line-height: 1.8; font-size: 15px; }
+.report-body h2 { font-family: ‘DM Serif Display’, serif; font-size: 20px; margin: 28px 0 10px; padding-top: 20px; border-top: 1px solid var(–border); color: var(–ink); }
+.report-body h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+.report-body h3 { font-family: ‘DM Sans’, sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(–gold); margin: 22px 0 8px; }
+.report-body p { margin-bottom: 14px; color: #1a1a1a; }
+.report-body ul { margin: 8px 0 14px 18px; }
+.report-body li { margin-bottom: 8px; }
+.report-body strong { color: var(–ink); font-weight: 500; }
+.mover-up { color: var(–green); font-weight: 500; }
+.mover-dn { color: var(–red); font-weight: 500; }
+
+.history-section { margin-top: 40px; }
+.section-rule { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.section-rule span { font-family: ‘IBM Plex Mono’, monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(–muted); white-space: nowrap; }
+.section-rule::before, .section-rule::after { content: ‘’; flex: 1; height: 1px; background: var(–border); }
+.history-item { border: 1px solid var(–border); border-radius: 3px; margin-bottom: 10px; overflow: hidden; cursor: pointer; background: var(–card); }
+.history-summary { padding: 12px 16px; display: flex; align-items: center; gap: 12px; transition: background 0.15s; }
+.history-summary:hover { background: #eee; }
+.history-badge { font-family: ‘IBM Plex Mono’, monospace; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; padding: 2px 8px; border-radius: 2px; flex-shrink: 0; }
+.history-badge.morning { background: #e8f5ee; color: var(–green); }
+.history-badge.evening { background: #e8eaf5; color: #3a4aaf; }
+.history-date { font-family: ‘IBM Plex Mono’, monospace; font-size: 11px; color: var(–muted); flex-shrink: 0; }
+.history-preview { font-size: 13px; color: var(–ink); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.history-expand { color: var(–muted); font-size: 12px; flex-shrink: 0; }
+.history-detail { display: none; padding: 16px 20px; border-top: 1px solid var(–border); background: white; font-size: 13px; line-height: 1.7; }
+.history-detail.open { display: block; }
+
+.error-msg { background: #fff5f5; border: 1px solid #f5c6c6; border-radius: 3px; padding: 14px 18px; color: var(–red); font-size: 13px; margin-top: 16px; display: none; font-family: ‘IBM Plex Mono’, monospace; }
+.error-msg.visible { display: block; }
+
+/* Shared panel styles */
+.panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(–border); gap: 12px; flex-wrap: wrap; }
+.panel-title { font-family: ‘DM Serif Display’, serif; font-size: 22px; }
+.panel-meta { font-family: ‘IBM Plex Mono’, monospace; font-size: 10px; color: var(–muted); letter-spacing: 1px; }
+
+.wl-generate-area { text-align: center; padding: 50px 24px; border: 1px dashed var(–border); border-radius: 4px; background: var(–card); }
+.wl-generate-area p { font-family: ‘DM Serif Display’, serif; font-size: 17px; color: var(–muted); font-style: italic; margin-bottom: 22px; }
+
+.wl-loading { text-align: center; padding: 48px; font-family: ‘DM Serif Display’, serif; font-size: 17px; color: var(–muted); font-style: italic; display: none; }
+.wl-loading.visible { display: block; }
+.wl-spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(–border); border-top-color: var(–gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 10px; vertical-align: middle; }
+
+.regenerate-btn { background: none; border: 1px solid var(–border); color: var(–muted); padding: 6px 14px; font-family: ‘IBM Plex Mono’, monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: all 0.15s; display: none; align-items: center; gap: 6px; }
+.regenerate-btn:hover { border-color: var(–ink); color: var(–ink); }
+.regenerate-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.wl-timestamp { font-family: ‘IBM Plex Mono’, monospace; font-size: 10px; color: var(–muted); text-align: right; margin-top: 16px; letter-spacing: 1px; }
+.wl-error { background: #fff5f5; border: 1px solid #f5c6c6; border-radius: 3px; padding: 12px 16px; color: var(–red); font-size: 12px; font-family: ‘IBM Plex Mono’, monospace; display: none; }
+.wl-error.visible { display: block; }
+
+/* Watchlist */
+.ticker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.ticker-card { background: white; border: 1px solid var(–border); border-radius: 4px; overflow: hidden; transition: box-shadow 0.15s; }
+.ticker-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.ticker-card-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 10px; border-bottom: 1px solid var(–border); background: var(–card); }
+.tc-left { display: flex; align-items: baseline; gap: 8px; }
+.tc-symbol { font-family: ‘IBM Plex Mono’, monospace; font-size: 15px; font-weight: 500; color: var(–ink); }
+.tc-name { font-size: 11px; color: var(–muted); }
+.tc-rank { font-family: ‘IBM Plex Mono’, monospace; font-size: 10px; background: var(–ink); color: var(–gold); padding: 2px 7px; border-radius: 2px; letter-spacing: 1px; }
+.ticker-card-body { padding: 12px 14px; }
+.tc-signals { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+.tc-signal { font-family: ‘IBM Plex Mono’, monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; border: 1px solid; }
+.tc-signal.vol { background: #fff8e8; color: #8a6a00; border-color: #e8d080; }
+.tc-signal.vlt { background: #f0e8ff; color: #5a2a9a; border-color: #c8a0f0; }
+.tc-signal.cat { background: #e8f5ee; color: var(–green); border-color: #a0d8b8; }
+.tc-signal.pe  { background: #e8f0ff; color: #2a4aaf; border-color: #a0b8f0; }
+.tc-signal.dn  { background: #fff0f0; color: var(–red); border-color: #f0b8b8; }
+.tc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; margin-bottom: 10px; }
+.tc-stat { font-size: 11px; color: var(–muted); }
+.tc-stat strong { color: var(–ink); font-weight: 500; display: block; font-size: 12px; font-family: ‘IBM Plex Mono’, monospace; }
+.tc-reason { font-size: 12px; color: #2a2a2a; line-height: 1.5; border-top: 1px solid var(–border); padding-top: 9px; margin-top: 2px; }
+
+/* Analyst Price Targets */
+.pt-summary-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; padding: 16px; background: var(–card); border: 1px solid var(–border); border-radius: 4px; }
+.pt-sum-item { text-align: center; }
+.pt-sum-num { font-family: ‘IBM Plex Mono’, monospace; font-size: 24px; font-weight: 500; }
+.pt-sum-num.up { color: var(–green); }
+.pt-sum-num.dn { color: var(–red); }
+.pt-sum-num.neu { color: var(–gold); }
+.pt-sum-label { font-family: ‘IBM Plex Mono’, monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(–muted); margin-top: 3px; }
+
+.pt-filter-bar { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; }
+.pt-filter-label { font-family: ‘IBM Plex Mono’, monospace; font-size: 10px; letter-spacing: 1px; color: var(–muted); text-transform: uppercase; }
+.pt-filter-btn { font-family: ‘IBM Plex Mono’, monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; padding: 4px 12px; border-radius: 2px; border: 1px solid var(–border); background: none; color: var(–muted); cursor: pointer; transition: all 0.15s; }
+.pt-filter-btn:hover { border-color: var(–ink); color: var(–ink); }
+.pt-filter-btn.active { background: var(–ink); color: var(–gold); border-color: var(–ink); }
+
+.pt-list { display: flex; flex-direction: column; gap: 10px; }
+
+.pt-card { background: white; border: 1px solid var(–border); border-radius: 4px; padding: 16px 18px; display: grid; grid-template-columns: 90px 1fr auto; gap: 12px 20px; align-items: start; transition: box-shadow 0.15s; }
+.pt-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.07); }
+.pt-card.upgrade { border-left: 3px solid var(–green); }
+.pt-card.downgrade { border-left: 3px solid var(–red); }
+.pt-card.initiate { border-left: 3px solid var(–gold); }
+.pt-card.reiterate { border-left: 3px solid #bbb; }
+
+.pt-ticker-col { display: flex; flex-direction: column; gap: 4px; }
+.pt-symbol { font-family: ‘IBM Plex Mono’, monospace; font-size: 16px; font-weight: 500; color: var(–ink); }
+.pt-company { font-size: 11px; color: var(–muted); line-height: 1.3; }
+.pt-date-label { font-family: ‘IBM Plex Mono’, monospace; font-size: 10px; color: var(–muted); letter-spacing: 1px; margin-top: 4px; }
+
+.pt-middle { display: flex; flex-direction: column; gap: 5px; }
+.pt-action-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pt-action-badge { font-family: ‘IBM Plex Mono’, monospace; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; padding: 2px 8px; border-radius: 2px; }
+.pt-action-badge.upgrade { background: #e8f5ee; color: var(–green); }
+.pt-action-badge.downgrade { background: #fff0f0; color: var(–red); }
+.pt-action-badge.initiate { background: #fff8e8; color: #8a6a00; }
+.pt-action-badge.reiterate { background: #f0f0f0; color: #555; }
+.pt-rating-change { font-size: 13px; color: var(–ink); }
+.pt-analyst { font-size: 12px; color: var(–muted); font-style: italic; }
+.pt-note { font-size: 12px; color: #2a2a2a; line-height: 1.55; }
+
+.pt-price-col { display: flex; flex-direction: column; gap: 5px; text-align: right; min-width: 90px; }
+.pt-target-new { font-family: ‘IBM Plex Mono’, monospace; font-size: 20px; font-weight: 500; color: var(–ink); }
+.pt-target-old { font-family: ‘IBM Plex Mono’, monospace; font-size: 11px; color: var(–muted); text-decoration: line-through; }
+.pt-upside { font-family: ‘IBM Plex Mono’, monospace; font-size: 11px; font-weight: 500; padding: 2px 6px; border-radius: 2px; align-self: flex-end; }
+.pt-upside.pos { background: #e8f5ee; color: var(–green); }
+.pt-upside.neg { background: #fff0f0; color: var(–red); }
+.pt-current { font-family: ‘IBM Plex Mono’, monospace; font-size: 10px; color: var(–muted); }
+
+.footer { border-top: 3px double var(–ink); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; font-family: ‘IBM Plex Mono’, monospace; font-size: 10px; color: var(–muted); letter-spacing: 1px; }
+
+@media (max-width: 640px) {
+.masthead { flex-direction: column; align-items: flex-start; }
+.masthead-right { text-align: left; }
+.report-meta { flex-direction: column; gap: 4px; align-items: flex-start; }
+.pt-card { grid-template-columns: 1fr; }
+.pt-price-col { text-align: left; flex-direction: row; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pt-summary-bar { grid-template-columns: 1fr 1fr; }
+.footer { flex-direction: column; gap: 6px; text-align: center; }
+}
+</style>
+
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-left">
+    <div class="paper-name">Market<em>Pulse</em></div>
+    <div class="tagline">AI-Powered Market Intelligence · Est. 2025</div>
+  </div>
+  <div class="masthead-right">
+    <div id="live-time">--:-- --</div>
+    <div id="live-date">Loading...</div>
+    <div>AI EDITION</div>
+  </div>
+</header>
+
+<div class="edition-strip">
+  <div class="edition-label">EDITION</div>
+  <div class="edition-btns">
+    <button class="edition-btn active" id="btn-morning" onclick="setEdition('morning')">☀ MORNING</button>
+    <button class="edition-btn" id="btn-evening" onclick="setEdition('evening')">◗ EVENING</button>
+  </div>
+  <div class="ticker-wrap">
+    <div class="ticker-inner">
+      <span>SPY <span class="up">▲ 0.42%</span></span>
+      <span>QQQ <span class="up">▲ 0.71%</span></span>
+      <span>DIA <span class="dn">▼ 0.18%</span></span>
+      <span>NVDA <span class="up">▲ 2.3%</span></span>
+      <span>AAPL <span class="dn">▼ 0.5%</span></span>
+      <span>TSLA <span class="up">▲ 1.8%</span></span>
+      <span>AMZN <span class="up">▲ 0.9%</span></span>
+      <span>MSFT <span class="up">▲ 0.6%</span></span>
+      <span>META <span class="dn">▼ 0.3%</span></span>
+      <span>BTC <span class="up">▲ 1.2%</span></span>
+      <span>SPY <span class="up">▲ 0.42%</span></span>
+      <span>QQQ <span class="up">▲ 0.71%</span></span>
+      <span>DIA <span class="dn">▼ 0.18%</span></span>
+      <span>NVDA <span class="up">▲ 2.3%</span></span>
+      <span>AAPL <span class="dn">▼ 0.5%</span></span>
+      <span>TSLA <span class="up">▲ 1.8%</span></span>
+      <span>AMZN <span class="up">▲ 0.9%</span></span>
+      <span>MSFT <span class="up">▲ 0.6%</span></span>
+      <span>META <span class="dn">▼ 0.3%</span></span>
+      <span>BTC <span class="up">▲ 1.2%</span></span>
+    </div>
+  </div>
+</div>
+
+<main class="main">
+
+  <div class="tab-nav">
+    <button class="tab-btn active" id="tab-reports-btn" onclick="switchTab('reports')">📰 Daily Reports</button>
+    <button class="tab-btn" id="tab-watchlist-btn" onclick="switchTab('watchlist')">🎯 Watchlist</button>
+    <button class="tab-btn" id="tab-targets-btn" onclick="switchTab('targets')">🏹 Analyst Targets</button>
+  </div>
+
+  <!-- TAB 1: DAILY REPORTS -->
+
+  <div class="tab-pane active" id="tab-reports">
+    <div class="report-header">
+      <span class="report-badge morning" id="edition-badge">MORNING EDITION</span>
+      <div class="report-title" id="report-title">Generate your morning market briefing</div>
+    </div>
+    <div class="generate-area" id="gen-area">
+      <p id="gen-prompt-text">What moved markets overnight? Get your briefing.</p>
+      <button class="gen-btn" id="gen-btn" onclick="generateReport()">
+        <div class="spinner"></div>
+        <span class="btn-text" id="btn-label">Generate Morning Briefing</span>
+      </button>
+      <div class="error-msg" id="error-msg"></div>
+    </div>
+    <div class="report-card" id="report-card">
+      <div class="report-meta">
+        <span id="report-edition-label">MORNING EDITION</span>
+        <span id="report-timestamp"></span>
+      </div>
+      <div class="report-body" id="report-body"></div>
+    </div>
+    <div class="history-section" id="history-section" style="display:none">
+      <div class="section-rule"><span>Past Reports</span></div>
+      <div id="history-list"></div>
+    </div>
+  </div>
+
+  <!-- TAB 2: WATCHLIST -->
+
+  <div class="tab-pane" id="tab-watchlist">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Today's Trading Watchlist</div>
+        <div class="panel-meta" id="wl-meta">10 tickers with anomalous volume, volatility &amp; catalyst signals</div>
+      </div>
+      <button class="regenerate-btn" id="wl-regen-btn" onclick="generateWatchlist()">↻ Refresh</button>
+    </div>
+    <div class="wl-generate-area" id="wl-gen-area">
+      <p>Scan the market for today's highest-signal trading opportunities.</p>
+      <button class="gen-btn" id="wl-gen-btn" onclick="generateWatchlist()">
+        <div class="spinner"></div>
+        <span class="btn-text">Build Watchlist</span>
+      </button>
+      <div class="wl-error" id="wl-error"></div>
+    </div>
+    <div class="wl-loading" id="wl-loading">
+      <span class="wl-spinner"></span> Scanning for anomalous volume, volatility &amp; catalysts…
+    </div>
+    <div id="ticker-grid-wrap" style="display:none">
+      <div class="ticker-grid" id="ticker-cards"></div>
+      <div class="wl-timestamp" id="wl-timestamp"></div>
+      <div class="wl-error" id="wl-error-refresh" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <!-- TAB 3: ANALYST PRICE TARGETS -->
+
+  <div class="tab-pane" id="tab-targets">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Analyst Price Target Updates</div>
+        <div class="panel-meta" id="pt-meta">Latest upgrades, downgrades &amp; price target changes from Wall Street</div>
+      </div>
+      <button class="regenerate-btn" id="pt-regen-btn" onclick="generateTargets()">↻ Refresh</button>
+    </div>
+    <div class="wl-generate-area" id="pt-gen-area">
+      <p>Pull today's freshest analyst calls, upgrades, downgrades &amp; price target changes.</p>
+      <button class="gen-btn" id="pt-gen-btn" onclick="generateTargets()">
+        <div class="spinner"></div>
+        <span class="btn-text">Fetch Analyst Targets</span>
+      </button>
+      <div class="wl-error" id="pt-error"></div>
+    </div>
+    <div class="wl-loading" id="pt-loading">
+      <span class="wl-spinner"></span> Scanning Wall Street research desks for the latest calls…
+    </div>
+    <div id="pt-results-wrap" style="display:none">
+      <div class="pt-summary-bar">
+        <div class="pt-sum-item"><div class="pt-sum-num up" id="pt-sum-upgrades">—</div><div class="pt-sum-label">Upgrades</div></div>
+        <div class="pt-sum-item"><div class="pt-sum-num dn" id="pt-sum-downgrades">—</div><div class="pt-sum-label">Downgrades</div></div>
+        <div class="pt-sum-item"><div class="pt-sum-num neu" id="pt-sum-initiates">—</div><div class="pt-sum-label">Initiations</div></div>
+        <div class="pt-sum-item"><div class="pt-sum-num" id="pt-sum-total" style="color:var(--ink)">—</div><div class="pt-sum-label">Total Calls</div></div>
+      </div>
+      <div class="pt-filter-bar">
+        <span class="pt-filter-label">Filter:</span>
+        <button class="pt-filter-btn active" onclick="filterTargets('all',this)">All</button>
+        <button class="pt-filter-btn" onclick="filterTargets('upgrade',this)">Upgrades</button>
+        <button class="pt-filter-btn" onclick="filterTargets('downgrade',this)">Downgrades</button>
+        <button class="pt-filter-btn" onclick="filterTargets('initiate',this)">Initiations</button>
+        <button class="pt-filter-btn" onclick="filterTargets('reiterate',this)">Reiterations</button>
+      </div>
+      <div class="pt-list" id="pt-list"></div>
+      <div class="wl-timestamp" id="pt-timestamp"></div>
+      <div class="wl-error" id="pt-error-refresh" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <span>MARKETPULSE AI INTELLIGENCE</span>
+  <span>POWERED BY CLAUDE + LIVE WEB SEARCH</span>
+  <span>NOT FINANCIAL ADVICE</span>
+</footer>
+
+<script>
+  let currentEdition = 'morning';
+  let reportHistory = JSON.parse(localStorage.getItem('mp_history') || '[]');
+  let allTargets = [];
+
+  // Clock
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('live-time').textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    document.getElementById('live-date').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+  if (new Date().getHours() >= 14) setEdition('evening');
+
+  // Tabs
+  function switchTab(tab) {
+    ['reports','watchlist','targets'].forEach(t => {
+      document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+      document.getElementById('tab-'+t+'-btn').classList.toggle('active', t===tab);
+    });
+  }
+
+  // Edition
+  function setEdition(ed) {
+    currentEdition = ed;
+    document.getElementById('btn-morning').classList.toggle('active', ed==='morning');
+    document.getElementById('btn-evening').classList.toggle('active', ed==='evening');
+    const badge = document.getElementById('edition-badge');
+    const title = document.getElementById('report-title');
+    const btnLabel = document.getElementById('btn-label');
+    const prompt = document.getElementById('gen-prompt-text');
+    if (ed==='morning') {
+      badge.textContent='MORNING EDITION'; badge.className='report-badge morning';
+      title.textContent='Generate your morning market briefing';
+      btnLabel.textContent='Generate Morning Briefing';
+      prompt.textContent='What moved markets overnight? Get your briefing.';
+    } else {
+      badge.textContent='EVENING EDITION'; badge.className='report-badge evening';
+      title.textContent='Generate your evening market wrap-up';
+      btnLabel.textContent='Generate Evening Wrap-Up';
+      prompt.textContent="How did today's session close? Get the full wrap.";
+    }
+    document.getElementById('report-card').classList.remove('visible');
+    document.getElementById('gen-area').style.display='block';
+  }
+
+  // Shared API helper
+  async function callClaude(system, user) {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 4000,
+        system,
+        tools: [{ type: "web_search_20250305", name: "web_search" }],
+        messages: [{ role: "user", content: user }]
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error ${res.status}`);
+    }
+    const data = await res.json();
+    return data.content.filter(b => b.type==='text').map(b => b.text).join('');
+  }
+
+  // ── TAB 1: DAILY REPORTS ─────────────────────
+  async function generateReport() {
+    const btn = document.getElementById('gen-btn');
+    const errorEl = document.getElementById('error-msg');
+    btn.disabled=true; btn.classList.add('loading');
+    errorEl.classList.remove('visible');
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+    const timeStr = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    const isMorning = currentEdition==='morning';
+    const sys = `You are MarketPulse, an elite financial journalist. Write authoritative, data-rich market reports.
+Use web search for the LATEST real data. Structure in clean HTML: <h2> sections, <h3> subsections, <p> paragraphs, <ul><li> lists.
+Use <span class="mover-up">TICKER +X%</span> for gainers and <span class="mover-dn">TICKER -X%</span> for losers.
+No markdown. No backtick fences. Output HTML only starting with the first <h2>.`;
+    const usr = isMorning
+      ? `MORNING EDITION for ${dateStr}. Search for latest data. Include:
+<h2>The Overnight Picture</h2> — global markets, Asia/Europe index moves.
+<h2>Today's Setup</h2> — economic releases today, Fed speakers, earnings due.
+<h2>Biggest Pre-Market Movers</h2> — top 5 gainers and top 5 losers with % and reason.
+<h2>Macro & Sector Watch</h2> — rates, commodities, crypto, sector themes.
+<h2>What the Street Is Saying</h2> — analyst calls, upgrades/downgrades overnight.
+<h2>Editor's Take</h2> — one sharp paragraph on the single most important thing today.`
+      : `EVENING EDITION for ${dateStr}. Search for latest close data. Include:
+<h2>Today's Final Scorecard</h2> — S&P 500, Nasdaq, Dow, Russell 2000, VIX close.
+<h2>Today's Biggest Movers</h2> — top 5 gainers and top 5 losers with % and reason.
+<h2>What Drove the Market</h2> — 2-3 biggest stories that moved markets.
+<h2>Sector Breakdown</h2> — which sectors led/lagged, rotation.
+<h2>Earnings Highlights</h2> — beats, misses, guidance changes.
+<h2>Looking Ahead</h2> — what matters most tomorrow.
+<h2>Editor's Take</h2> — one sharp closing paragraph.`;
+    try {
+      const html = await callClaude(sys, usr);
+      if (!html.trim()) throw new Error('No content received. Please try again.');
+      const entry = { id:Date.now(), edition:currentEdition, date:dateStr, time:timeStr, preview:html.replace(/<[^>]+>/g,' ').trim().substring(0,120)+'...', html };
+      reportHistory.unshift(entry);
+      if (reportHistory.length>10) reportHistory=reportHistory.slice(0,10);
+      localStorage.setItem('mp_history',JSON.stringify(reportHistory));
+      document.getElementById('report-card').classList.add('visible');
+      document.getElementById('gen-area').style.display='none';
+      document.getElementById('report-body').innerHTML=html;
+      document.getElementById('report-edition-label').textContent=isMorning?'MORNING EDITION':'EVENING EDITION';
+      document.getElementById('report-timestamp').textContent=`${dateStr} · ${timeStr}`;
+      document.getElementById('report-title').textContent=isMorning?'Morning Market Briefing':'Evening Market Wrap-Up';
+      renderHistory();
+    } catch(err) {
+      errorEl.textContent='⚠ '+err.message; errorEl.classList.add('visible');
+    } finally {
+      btn.disabled=false; btn.classList.remove('loading');
+    }
+  }
+
+  function renderHistory() {
+    if (!reportHistory.length) return;
+    document.getElementById('history-section').style.display='block';
+    const toShow = reportHistory.slice(1);
+    if (!toShow.length) return;
+    document.getElementById('history-list').innerHTML = toShow.map((r,i) => `
+      <div class="history-item">
+        <div class="history-summary" onclick="toggleHistory(${i})">
+          <span class="history-badge ${r.edition}">${r.edition==='morning'?'☀ Morning':'◗ Evening'}</span>
+          <span class="history-date">${r.date} · ${r.time}</span>
+          <span class="history-preview">${r.preview}</span>
+          <span class="history-expand">▾</span>
+        </div>
+        <div class="history-detail" id="hist-${i}">${r.html}</div>
+      </div>`).join('');
+  }
+
+  function toggleHistory(i) { document.getElementById('hist-'+i).classList.toggle('open'); }
+
+  // ── TAB 2: WATCHLIST ─────────────────────────
+  async function generateWatchlist() {
+    const genArea=document.getElementById('wl-gen-area'), loading=document.getElementById('wl-loading');
+    const gridWrap=document.getElementById('ticker-grid-wrap'), cards=document.getElementById('ticker-cards');
+    const errEl=document.getElementById('wl-error'), errRef=document.getElementById('wl-error-refresh');
+    const regenBtn=document.getElementById('wl-regen-btn'), genBtn=document.getElementById('wl-gen-btn');
+    genArea.style.display='none'; gridWrap.style.display='none'; loading.classList.add('visible');
+    errEl.classList.remove('visible'); errRef.classList.remove('visible');
+    regenBtn.disabled=true; genBtn.disabled=true; genBtn.classList.add('loading');
+    const now=new Date();
+    const dateStr=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+    const timeStr=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    const sys=`You are an elite quantitative analyst. Identify exactly 10 stocks worth watching today based on anomalous signals.
+Respond with ONLY a valid JSON array — no markdown, no explanation, no preamble.
+Fields required: symbol, name, price, change, direction ("up"/"down"), volume_signal, volatility_signal, pe_ratio, catalyst, reason, signals (array of: VOL VLT CATALYST PE BEARISH).`;
+    const usr=`Today is ${dateStr}. Search for stocks with anomalous signals RIGHT NOW.
+Look for: unusual volume (2x+ avg), IV/volatility spikes, catalysts (earnings, FDA, M&A, analyst calls), valuation extremes.
+Search: "unusual volume stocks today", "pre-market movers ${dateStr}", "stocks earnings today", "unusual options activity today".
+Return ONLY the JSON array of exactly 10 tickers.`;
+    try {
+      const raw=await callClaude(sys,usr);
+      const m=raw.match(/\[[\s\S]*\]/);
+      if (!m) throw new Error('Could not parse watchlist. Please try again.');
+      const tickers=JSON.parse(m[0]);
+      if (!Array.isArray(tickers)||!tickers.length) throw new Error('No tickers returned. Please try again.');
+      const sigMap={VOL:['vol','Volume Spike'],VLT:['vlt','Volatility'],CATALYST:['cat','Catalyst'],PE:['pe','P/E Signal'],BEARISH:['dn','Bearish']};
+      cards.innerHTML=tickers.map((t,i)=>{
+        const sigs=(t.signals||[]).map(s=>{const[cls,lbl]=sigMap[s]||['vol',s];return`<span class="tc-signal ${cls}">${lbl}</span>`;}).join('');
+        const dc=t.direction==='up'?'mover-up':'mover-dn', arr=t.direction==='up'?'▲':'▼';
+        return`<div class="ticker-card">
+          <div class="ticker-card-head"><div class="tc-left"><span class="tc-symbol">${t.symbol||'—'}</span><span class="tc-name">${t.name||''}</span></div><span class="tc-rank">#${i+1}</span></div>
+          <div class="ticker-card-body">
+            <div class="tc-signals">${sigs}</div>
+            <div class="tc-stats">
+              <div class="tc-stat"><strong>${t.price||'—'}</strong>Price</div>
+              <div class="tc-stat"><strong class="${dc}">${arr} ${t.change||'—'}</strong>Change</div>
+              <div class="tc-stat"><strong>${t.volume_signal||'—'}</strong>Volume</div>
+              <div class="tc-stat"><strong>${t.pe_ratio||'—'}</strong>P/E Ratio</div>
+            </div>
+            ${t.volatility_signal?`<div class="tc-stat" style="margin-bottom:8px"><strong style="font-size:11px">${t.volatility_signal}</strong><br>Volatility Signal</div>`:''}
+            <div class="tc-reason"><strong style="font-size:11px;color:var(--gold);font-family:'IBM Plex Mono',monospace;letter-spacing:1px">CATALYST</strong><br>${t.catalyst||''}<br><br>${t.reason||''}</div>
+          </div></div>`;
+      }).join('');
+      loading.classList.remove('visible'); gridWrap.style.display='block'; regenBtn.style.display='inline-flex';
+      document.getElementById('wl-timestamp').textContent=`Generated ${dateStr} · ${timeStr} · ${tickers.length} tickers`;
+      document.getElementById('wl-meta').textContent=`${tickers.length} tickers · Last updated ${timeStr}`;
+    } catch(err) {
+      loading.classList.remove('visible');
+      const isRef=gridWrap.style.display==='block';
+      if(!isRef) genArea.style.display='block';
+      const tgt=isRef?errRef:errEl; tgt.textContent='⚠ '+err.message; tgt.classList.add('visible');
+    } finally { genBtn.disabled=false; genBtn.classList.remove('loading'); regenBtn.disabled=false; }
+  }
+
+  // ── TAB 3: ANALYST PRICE TARGETS ─────────────
+  async function generateTargets() {
+    const genArea=document.getElementById('pt-gen-area'), loading=document.getElementById('pt-loading');
+    const resWrap=document.getElementById('pt-results-wrap');
+    const errEl=document.getElementById('pt-error'), errRef=document.getElementById('pt-error-refresh');
+    const regenBtn=document.getElementById('pt-regen-btn'), genBtn=document.getElementById('pt-gen-btn');
+    genArea.style.display='none'; resWrap.style.display='none'; loading.classList.add('visible');
+    errEl.classList.remove('visible'); errRef.classList.remove('visible');
+    regenBtn.disabled=true; genBtn.disabled=true; genBtn.classList.add('loading');
+    const now=new Date();
+    const dateStr=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+    const timeStr=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    const sys=`You are a Wall Street research aggregator. Find the latest analyst price target changes and rating actions.
+Respond with ONLY a valid JSON array — no markdown, no preamble, just raw JSON.
+Required fields per item:
+symbol, name, action (upgrade/downgrade/initiate/reiterate), firm, analyst,
+rating_new, rating_old (null for initiations), target_new, target_old (null for initiations),
+current_price, upside (e.g. "+14%" or "-8%"), upside_direction ("pos" or "neg"),
+note (1-2 sentence thesis), date ("Today" or "Yesterday").`;
+    const usr=`Today is ${dateStr}. Find the most recent analyst calls from today and yesterday.
+Search: "analyst upgrades downgrades today", "price target changes ${dateStr}", "analyst rating changes stocks today", "Wall Street analyst calls today".
+Find 15-20 recent calls from major firms (Goldman, Morgan Stanley, JPMorgan, BofA, Citi, Wells Fargo, Barclays, UBS, etc).
+Mix of upgrades, downgrades, initiations, and reiterations. Return ONLY the JSON array.`;
+    try {
+      const raw=await callClaude(sys,usr);
+      const m=raw.match(/\[[\s\S]*\]/);
+      if (!m) throw new Error('Could not parse analyst data. Please try again.');
+      allTargets=JSON.parse(m[0]);
+      if (!Array.isArray(allTargets)||!allTargets.length) throw new Error('No analyst calls returned. Please try again.');
+      document.getElementById('pt-sum-upgrades').textContent=allTargets.filter(t=>t.action==='upgrade').length;
+      document.getElementById('pt-sum-downgrades').textContent=allTargets.filter(t=>t.action==='downgrade').length;
+      document.getElementById('pt-sum-initiates').textContent=allTargets.filter(t=>t.action==='initiate').length;
+      document.getElementById('pt-sum-total').textContent=allTargets.length;
+      renderTargets(allTargets);
+      loading.classList.remove('visible'); resWrap.style.display='block'; regenBtn.style.display='inline-flex';
+      document.getElementById('pt-timestamp').textContent=`Fetched ${dateStr} · ${timeStr} · ${allTargets.length} analyst calls`;
+      document.getElementById('pt-meta').textContent=`${allTargets.length} analyst calls · Last updated ${timeStr}`;
+      document.querySelectorAll('.pt-filter-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelector('.pt-filter-btn').classList.add('active');
+    } catch(err) {
+      loading.classList.remove('visible');
+      const isRef=resWrap.style.display==='block';
+      if(!isRef) genArea.style.display='block';
+      const tgt=isRef?errRef:errEl; tgt.textContent='⚠ '+err.message; tgt.classList.add('visible');
+    } finally { genBtn.disabled=false; genBtn.classList.remove('loading'); regenBtn.disabled=false; }
+  }
+
+  function renderTargets(targets) {
+    const list=document.getElementById('pt-list');
+    if (!targets.length) {
+      list.innerHTML='<div style="text-align:center;padding:32px;color:var(--muted);font-style:italic;font-family:\'DM Serif Display\',serif;font-size:17px">No calls match this filter.</div>';
+      return;
+    }
+    const labels={upgrade:'Upgrade',downgrade:'Downgrade',initiate:'Initiation',reiterate:'Reiteration'};
+    list.innerHTML=targets.map(t=>{
+      const action=t.action||'reiterate';
+      const ratingChg=t.rating_old
+        ?`<span style="color:var(--muted)">${t.rating_old}</span> → <strong>${t.rating_new}</strong>`
+        :`<strong>${t.rating_new}</strong>`;
+      return`<div class="pt-card ${action}">
+        <div class="pt-ticker-col">
+          <div class="pt-symbol">${t.symbol||'—'}</div>
+          <div class="pt-company">${t.name||''}</div>
+          <div class="pt-date-label">${t.date||''}</div>
+        </div>
+        <div class="pt-middle">
+          <div class="pt-action-row">
+            <span class="pt-action-badge ${action}">${labels[action]||action}</span>
+            <span class="pt-rating-change">${ratingChg}</span>
+          </div>
+          <div class="pt-analyst">${t.firm||''}${t.analyst?' · '+t.analyst:''}</div>
+          ${t.note?`<div class="pt-note">${t.note}</div>`:''}
+        </div>
+        <div class="pt-price-col">
+          <div class="pt-target-new">${t.target_new||'—'}</div>
+          ${t.target_old?`<div class="pt-target-old">${t.target_old}</div>`:''}
+          ${t.upside?`<span class="pt-upside ${t.upside_direction||'pos'}">${t.upside}</span>`:''}
+          ${t.current_price?`<div class="pt-current">Now: ${t.current_price}</div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function filterTargets(action, btn) {
+    document.querySelectorAll('.pt-filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTargets(action==='all'?allTargets:allTargets.filter(t=>t.action===action));
+  }
+
+  // Init: restore saved reports
+  if (reportHistory.length>0) {
+    const last=reportHistory[0];
+    document.getElementById('report-card').classList.add('visible');
+    document.getElementById('gen-area').style.display='none';
+    document.getElementById('report-body').innerHTML=last.html;
+    document.getElementById('report-edition-label').textContent=last.edition==='morning'?'MORNING EDITION':'EVENING EDITION';
+    document.getElementById('report-timestamp').textContent=`${last.date} · ${last.time}`;
+    document.getElementById('report-title').textContent=last.edition==='morning'?'Morning Market Briefing':'Evening Market Wrap-Up';
+    setEdition(last.edition);
+    renderHistory();
+  }
+</script>
+
+</body>
+</html>
